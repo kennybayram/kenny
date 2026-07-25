@@ -1,31 +1,31 @@
-name: Update Threat Feeds
+name: Auto Threat Intelligence Updater
 
 on:
   schedule:
-    # Her 2 saatte bir çalışır (UTC zamanına göre)
-    - cron: '0 */2 * * *'
-  workflow_dispatch: # İsterseniz GitHub panelinden butonla elle de tetikleyebilirsiniz
+    # Her 30 dakikada bir çalışır
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
 
 jobs:
-  build:
+  update-feed:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
+    - name: Repoyu Çek
+      uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Python Kur
+      uses: actions/setup-python@v5
       with:
-        python-python-version: '3.x'
+        python-version: '3.11'
 
-    - name: Run Fetch Script
+    - name: Scripti Çalıştır
       run: python fetch_threats.py
 
-    - name: Commit and Push Changes
+    - name: Güncellenen Dosyayı Kaydet ve Push Et
       run: |
         git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action Bot"
+        git config --local user.name "Kenny Bayram Bot"
         git add threat_list.txt
-        git diff-index --quiet HEAD || git commit -m "Auto-update threat list"
+        git diff-index --quiet HEAD || git commit -m "Threat list otomatik güncellendi [Bot]"
         git push
