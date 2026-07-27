@@ -23399,7 +23399,6 @@ http://196.189.198.193:34618/bin.sh
 http://196.189.198.193:34618/i
 http://196.189.198.193:36412/bin.sh
 http://196.189.198.193:36412/i
-http://196.189.198.193:36767/bin.sh
 http://196.189.198.193:36767/i
 http://196.189.198.193:37192/bin.sh
 http://196.189.198.193:37192/i
@@ -23436,7 +23435,6 @@ http://196.189.35.226:56218/bin.sh
 http://196.189.35.226:56218/i
 http://196.189.68.239:35012/bin.sh
 http://196.189.68.239:35012/i
-http://196.189.68.239:41450/bin.sh
 http://196.189.68.239:42634/bin.sh
 http://196.189.68.239:42634/i
 http://196.189.68.239:49504/i
@@ -58708,7 +58706,6 @@ https://podccam.brix9qen.lat/57oe-aget-358671-chess-345msdn01/take.dll
 https://point.archiv-checkered.surf/9fd51fb7-b3ad-4c8f-bf05-b5423d14e06c/user_6747.google
 https://point.oceanstormview.lat/9fd51fb7-b3ad-4c8f-bf05-b5423d14e06c/user_6747.google
 https://point8fluxsys.cobaltpathsys.garden/cdk-msdn-3457325-null/load-file0dsdf567.chk
-https://point8fluxsys.vectorpointsite.garden/cdk-msdn-3457325-null/load-file0dsdf567.chk
 https://pointcanunit.vectorpathsys.bet/software-distribution-dxnp2c7/meta-verify.index
 https://pointhostunit.nexo7peak.surf/software-distribution-dxnp2c7/meta-verify.index
 https://poiskrunsvo.vercel.app/?download=1
