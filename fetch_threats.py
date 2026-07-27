@@ -3,6 +3,7 @@ import json
 import re
 import urllib.request
 import urllib.error
+from urllib.parse import urlparse
 
 OUTPUT_IP = "threat_ip.txt"
 OUTPUT_DOMAIN = "threat_domain.txt"
@@ -30,16 +31,15 @@ def classify_and_add(raw_entry, target_set):
     if entry and not entry.startswith("#") and not entry.startswith(";"):
         target_set.add(entry)
 
+# --- İSTİHBARAT KAYNAKLARI ---
+
 def fetch_usom(all_entries):
     try:
-        # USOM güncellenmiş API / TXT listesi
         raw = fetch_data("https://www.usom.gov.tr/url-list.txt")
-        if not raw:
-            raw = fetch_data("https://usom.gov.tr/api/address/index")
         if raw:
             for line in raw.splitlines():
                 classify_and_add(line, all_entries)
-            print(f"[+] USOM tamamlandı.")
+            print("[+] USOM tamamlandı.")
     except Exception as e:
         print(f"[-] USOM Hata: {e}")
 
@@ -50,7 +50,7 @@ def fetch_urlhaus(all_entries):
             for line in raw_urls.splitlines():
                 if line and not line.startswith("#"):
                     classify_and_add(line, all_entries)
-        print(f"[+] URLhaus tamamlandı.")
+        print("[+] URLhaus tamamlandı.")
     except Exception as e:
         print(f"[-] URLhaus Hata: {e}")
 
@@ -60,7 +60,7 @@ def fetch_openphish(all_entries):
         if raw:
             for line in raw.splitlines():
                 classify_and_add(line, all_entries)
-        print(f"[+] OpenPhish tamamlandı.")
+        print("[+] OpenPhish tamamlandı.")
     except Exception as e:
         print(f"[-] OpenPhish Hata: {e}")
 
@@ -73,9 +73,64 @@ def fetch_phishtank(all_entries):
             for row in reader:
                 if row and row.get('url'):
                     classify_and_add(row['url'], all_entries)
-        print(f"[+] PhishTank tamamlandı.")
+        print("[+] PhishTank tamamlandı.")
     except Exception as e:
         print(f"[-] PhishTank Hata: {e}")
+
+# --- DOĞRUDAN IP ODAKLI KAYNAKLAR ---
+
+def fetch_blocklist_de(all_entries):
+    try:
+        raw = fetch_data("https://lists.blocklist.de/lists/all.txt")
+        if raw:
+            for line in raw.splitlines():
+                classify_and_add(line, all_entries)
+            print("[+] Blocklist.de (IP) tamamlandı.")
+    except Exception as e:
+        print(f"[-] Blocklist.de Hata: {e}")
+
+def fetch_feodo_tracker(all_entries):
+    try:
+        raw = fetch_data("https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt")
+        if raw:
+            for line in raw.splitlines():
+                if line and not line.startswith("#"):
+                    classify_and_add(line, all_entries)
+            print("[+] Feodo Tracker C2 (IP) tamamlandı.")
+    except Exception as e:
+        print(f"[-] Feodo Tracker Hata: {e}")
+
+def fetch_emerging_threats(all_entries):
+    try:
+        raw = fetch_data("https://rules.emergingthreats.net/freetargets/compromised-ips.txt")
+        if raw:
+            for line in raw.splitlines():
+                if line and not line.startswith("#"):
+                    classify_and_add(line, all_entries)
+            print("[+] Emerging Threats (IP) tamamlandı.")
+    except Exception as e:
+        print(f"[-] Emerging Threats Hata: {e}")
+
+def fetch_spamhaus(all_entries):
+    try:
+        urls = [
+            "https://www.spamhaus.org/drop/drop.txt",
+            "https://www.spamhaus.org/drop/edrop.txt"
+        ]
+        for url in urls:
+            raw = fetch_data(url)
+            if raw:
+                for line in raw.splitlines():
+                    line = line.strip()
+                    if line and not line.startswith(";"):
+                        cidr = line.split(";")[0].strip()
+                        if cidr:
+                            classify_and_add(cidr, all_entries)
+        print("[+] Spamhaus DROP (IP/CIDR) tamamlandı.")
+    except Exception as e:
+        print(f"[-] Spamhaus Hata: {e}")
+
+# --- AYRIŞTIRMA VE KATEGORİZE ETME ---
 
 def process_and_categorize(all_raw_entries):
     ip_set = set()
@@ -87,16 +142,36 @@ def process_and_categorize(all_raw_entries):
         if not item:
             continue
 
+        # 1. Tam URL ise ayrıştır
         if item.startswith("http://") or item.startswith("https://"):
             url_set.add(item)
+            try:
+                parsed = urlparse(item)
+                hostname = parsed.hostname
+                if hostname:
+                    hostname = hostname.strip()
+                    if IP_REGEX.match(hostname):
+                        ip_set.add(hostname)
+                    elif DOMAIN_REGEX.match(hostname):
+                        domain_set.add(hostname)
+            except Exception:
+                pass
+
+        # 2. Yalın IP veya CIDR (1.2.3.4 veya 1.2.3.0/24)
         elif IP_REGEX.match(item):
             ip_set.add(item)
+
+        # 3. Yalın Domain
         elif DOMAIN_REGEX.match(item):
             domain_set.add(item)
-        elif "/" in item:
-            url_set.add(item)
+
+        # 4. Port içeren veya path içeren ham girdiler (ör. 1.2.3.4:8080)
         else:
-            domain_set.add(item)
+            clean_host = item.split('/')[0].split(':')[0]
+            if IP_REGEX.match(clean_host):
+                ip_set.add(clean_host)
+            elif DOMAIN_REGEX.match(clean_host):
+                domain_set.add(clean_host)
 
     return ip_set, domain_set, url_set
 
@@ -104,12 +179,19 @@ def main():
     print("=== TEHDİT İSTİHBARATI VERİ TOPLAMA BAŞLADI ===\n")
     raw_entries = set()
 
+    # URL / Phishing Kaynakları
     fetch_usom(raw_entries)
     fetch_urlhaus(raw_entries)
     fetch_openphish(raw_entries)
     fetch_phishtank(raw_entries)
 
-    print("\n[+] Veriler ayrıştırılıyor...")
+    # IP Odaklı Kaynaklar
+    fetch_blocklist_de(raw_entries)
+    fetch_feodo_tracker(raw_entries)
+    fetch_emerging_threats(raw_entries)
+    fetch_spamhaus(raw_entries)
+
+    print("\n[+] Veriler ayrıştırılıyor ve kategorize ediliyor...")
     ip_list, domain_list, url_list = process_and_categorize(raw_entries)
 
     with open(OUTPUT_IP, "w", encoding="utf-8") as f:
