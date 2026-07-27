@@ -12,7 +12,7 @@ OUTPUT_DOMAIN = "threat_domain.txt"
 OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
-HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatBot/4.0'}
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatBot/5.0'}
 
 # --- REGEX KALIPLARI ---
 IP_REGEX = re.compile(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:/[0-9]{1,2})?$')
@@ -59,7 +59,7 @@ def save_and_report_diff(filename, new_set, label):
     print(f"  ➖ Listeden Çıkan: {len(removed)}")
 
 # ==========================================
-# 🌐 İSTİHBARAT KAYNAKLARI
+# 🌐 İSTİHBARAT KAYNAKLARI (GÜNCELLENMİŞ)
 # ==========================================
 
 # 1. TÜRKİYE (USOM)
@@ -85,49 +85,68 @@ def fetch_cisa_usa(all_entries):
             pass
     print("[+] CISA USA tamamlandı.")
 
-# 3. AVRUPA BİRLİĞİ (CERT-EU)
+# 3. AVRUPA BİRLİĞİ (CERT-EU) - GÜNCELLENDİ
 def fetch_cert_eu(all_entries):
-    raw = fetch_data("https://cert.europa.eu/static/ioc/ioc-list.txt")
-    if raw:
-        for line in raw.splitlines():
-            classify_and_add(line, all_entries)
+    urls = [
+        "https://raw.githubusercontent.com/cert-eu/threat-intelligence/main/iocs.txt",
+        "https://raw.githubusercontent.com/MISP/misp-warninglists/main/lists/ip-state-owned/list.json"
+    ]
+    for url in urls:
+        raw = fetch_data(url)
+        if raw:
+            for line in raw.splitlines():
+                if not line.startswith(("{", "}", "//")):
+                    classify_and_add(line, all_entries)
     print("[+] CERT-EU tamamlandı.")
 
-# 4. ALMANYA (CERT-Bund) & BLOCKLIST.DE
+# 4. ALMANYA (CERT-Bund / BSI & Blocklist.de) - GÜNCELLENDİ
 def fetch_germany(all_entries):
     urls = [
         "https://lists.blocklist.de/lists/all.txt",
-        "https://raw.githubusercontent.com/bsi-kb/threat-intelligence/main/iocs.txt"
+        "https://raw.githubusercontent.com/CERT-Bund/iocs/main/iocs.txt"
     ]
     for url in urls:
         raw = fetch_data(url)
         if raw:
             for line in raw.splitlines():
                 classify_and_add(line, all_entries)
-    print("[+] Almanya (Blocklist.de & BSI) tamamlandı.")
+    print("[+] Almanya (Blocklist.de & CERT-Bund) tamamlandı.")
 
-# 5. FRANSA (ANSSI / CERT-FR)
+# 5. FRANSA (ANSSI / CERT-FR) - GÜNCELLENDİ
 def fetch_france(all_entries):
-    raw = fetch_data("https://raw.githubusercontent.com/cert-fr/ioc/main/iocs.txt")
-    if raw:
-        for line in raw.splitlines():
-            classify_and_add(line, all_entries)
+    urls = [
+        "https://raw.githubusercontent.com/CERT-FR/IOCs/main/iocs.txt",
+        "https://raw.githubusercontent.com/cert-fr/open-ioc/main/iocs.txt"
+    ]
+    for url in urls:
+        raw = fetch_data(url)
+        if raw:
+            for line in raw.splitlines():
+                classify_and_add(line, all_entries)
     print("[+] Fransa (CERT-FR) tamamlandı.")
 
-# 6. İSVİÇRE (SWITCH / NCSC-CH)
+# 6. İSVİÇRE (NCSC-CH / SWITCH) - GÜNCELLENDİ
 def fetch_switzerland(all_entries):
-    raw = fetch_data("https://www.switch.ch/export/sites/default/about/news/2021/CERT-iocs.txt")
-    if raw:
-        for line in raw.splitlines():
-            classify_and_add(line, all_entries)
+    urls = [
+        "https://raw.githubusercontent.com/national-cyber-security-centre-ch/iocs/main/iocs.txt"
+    ]
+    for url in urls:
+        raw = fetch_data(url)
+        if raw:
+            for line in raw.splitlines():
+                classify_and_add(line, all_entries)
     print("[+] İsviçre (NCSC-CH) tamamlandı.")
 
-# 7. AVUSTURYA (CERT.AT)
+# 7. AVUSTURYA (CERT.AT) - GÜNCELLENDİ
 def fetch_austria(all_entries):
-    raw = fetch_data("https://cert.at/static/iocs.txt")
-    if raw:
-        for line in raw.splitlines():
-            classify_and_add(line, all_entries)
+    urls = [
+        "https://raw.githubusercontent.com/cert-at/iocs/main/iocs.txt"
+    ]
+    for url in urls:
+        raw = fetch_data(url)
+        if raw:
+            for line in raw.splitlines():
+                classify_and_add(line, all_entries)
     print("[+] Avusturya (CERT.AT) tamamlandı.")
 
 # 8. ABUSE.CH EKOSİSTEMİ (URLhaus, ThreatFox, Bazaar, Feodo)
@@ -154,7 +173,7 @@ def fetch_abuse_ch(all_entries):
                         classify_and_add(line, all_entries)
     print("[+] Abuse.ch Full Ekosistemi tamamlandı.")
 
-# 9. GLOBAL PHISHING & IP FEEDS (OpenPhish, PhishTank, Spamhaus, Emerging Threats)
+# 9. GLOBAL PHISHING & IP FEEDS (GÜNCELLENDİ)
 def fetch_global_feeds(all_entries):
     # OpenPhish
     raw_op = fetch_data("https://openphish.com/feed.txt")
@@ -173,8 +192,8 @@ def fetch_global_feeds(all_entries):
         except Exception:
             pass
 
-    # Emerging Threats
-    raw_et = fetch_data("https://rules.emergingthreats.net/freetargets/compromised-ips.txt")
+    # Emerging Threats (Güncel URL)
+    raw_et = fetch_data("https://rules.emergingthreats.net/blockrules/compromised-ips.txt")
     if raw_et:
         for line in raw_et.splitlines():
             classify_and_add(line, all_entries)
