@@ -2,33 +2,32 @@ name: Auto Threat Intelligence Updater
 
 on:
   schedule:
-    # Her 30 dakikada bir çalışır
     - cron: '*/30 * * * *'
-  workflow_dispatch: # Manuel tetikleme için
+  workflow_dispatch:
 
 jobs:
   update-feed:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Repoyu Çek
+    - name: Repoyu Cek
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Tüm git geçmişini çekerek rebase çakışmalarını önler
+        fetch-depth: 0
 
     - name: Python Kur
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
-    - name: Scripti Çalıştır
+    - name: Scripti Calistir
       run: python fetch_threats.py
 
-    - name: Güncellenen Dosyaları Kaydet ve Push Et
+    - name: Guncellenen Dosyalari Kaydet ve Push Et
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "Kenny Bayram Bot"
         git add threat_ip.txt threat_domain.txt threat_url.txt
-        git diff-index --quiet HEAD || git commit -m "Tehdit listeleri otomatik güncellendi [Bot]"
+        git diff-index --quiet HEAD || git commit -m "Tehdit listeleri otomatik guncellendi [Bot]"
         git pull --rebase origin main
-        git push
+        git push origin main
