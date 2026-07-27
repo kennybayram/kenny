@@ -102,7 +102,7 @@ def fetch_usom_api(all_entries):
     
     for base_url in endpoints:
         page = 1
-        max_pages = 25 # Genişletilmiş sayfalama limiti
+        max_pages = 25 
         
         while page <= max_pages:
             url = f"{base_url}?page={page}"
