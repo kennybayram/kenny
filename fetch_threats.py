@@ -199,6 +199,10 @@ def process_and_categorize(all_raw_entries):
     url_set = set()
 
     for item in all_raw_entries:
+        item = item.strip()
+        if not item:
+            continue
+
         if item.startswith("http://") or item.startswith("https://"):
             url_set.add(item)
         elif IP_REGEX.match(item):
@@ -231,7 +235,7 @@ def main():
     ip_list, domain_list, url_list = process_and_categorize(raw_entries)
 
     print("\n[+] Dosyalar oluşturuluyor...")
-    
+
     with open(OUTPUT_IP, "w", encoding="utf-8") as f:
         f.write("\n".join(sorted(ip_list)))
     print(f"[✓] {len(ip_list)} adet IP kaydedildi -> {OUTPUT_IP}")
@@ -244,7 +248,7 @@ def main():
         f.write("\n".join(sorted(url_list)))
     print(f"[✓] {len(url_list)} adet URL kaydedildi -> {OUTPUT_URL}")
 
-    print("\n[İSLEM TAMAMLANDI]")
+    print("\n[İŞLEM TAMAMLANDI]")
 
 if __name__ == "__main__":
     main()
