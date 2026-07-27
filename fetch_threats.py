@@ -13,7 +13,7 @@ OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/12.5',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/12.7',
     'Accept': 'application/json, text/plain, */*'
 }
 
@@ -37,7 +37,7 @@ DOMAIN_REGEX = re.compile(r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)
 HASH_MD5_REGEX = re.compile(r'^[a-fA-F0-9]{32}$')
 HASH_SHA256_REGEX = re.compile(r'^[a-fA-F0-9]{64}$')
 
-def fetch_http(url, method="GET", payload=None, custom_headers=None, timeout=15):
+def fetch_http(url, method="GET", payload=None, custom_headers=None, timeout=20):
     try:
         headers = custom_headers if custom_headers else HEADERS
         data = json.dumps(payload).encode('utf-8') if payload else None
@@ -90,11 +90,10 @@ def save_and_accumulate(filename, new_fetched_set, label):
     print(f"  ➖ Listeden Çıkan: {len(removed)}")
 
 # ==========================================
-# 🚀 1. TÜRKİYE (SİBER GÜVENLİK BAŞKANLIĞI / USOM API) - DOĞRULANDI
+# 🚀 1. TÜRKİYE (SİBER GÜVENLİK BAŞKANLIĞI / USOM API)
 # ==========================================
 def fetch_usom_api(all_entries):
-    print("[*] Siber Güvenlik Başkanlığı ve USOM API uç noktaları taranıyor...")
-    
+    print("[*] Siber Güvenlik Başkanlığı ve USOM API tüm arşivi taranıyor...")
     endpoints = [
         "https://siberguvenlik.gov.tr/api/address/index",
         "https://siberguvenlik.gov.tr/api/incident/index"
@@ -102,11 +101,11 @@ def fetch_usom_api(all_entries):
     
     for base_url in endpoints:
         page = 1
-        max_pages = 25 
+        consecutive_empty_pages = 0
         
-        while page <= max_pages:
+        while True:
             url = f"{base_url}?page={page}"
-            raw_data = fetch_http(url)
+            raw_data = fetch_http(url, timeout=25)
             if not raw_data:
                 break
             
@@ -119,8 +118,13 @@ def fetch_usom_api(all_entries):
                     items = json_data.get("models") or json_data.get("data") or json_data.get("items") or json_data.get("results", [])
                 
                 if not items:
-                    break
-                    
+                    consecutive_empty_pages += 1
+                    if consecutive_empty_pages >= 2:
+                        break
+                    page += 1
+                    continue
+                
+                consecutive_empty_pages = 0
                 for item in items:
                     if isinstance(item, dict):
                         for val in item.values():
@@ -132,10 +136,10 @@ def fetch_usom_api(all_entries):
                 page += 1
             except Exception:
                 break
-    print("    -> Siber Güvenlik Başkanlığı API taraması tamamlandı.")
+    print("    -> USOM arşiv taraması tamamlandı.")
 
 # ==========================================
-# 🚀 2. ABD (CISA & OPENPHISH) - DOĞRULANDI
+# 🚀 2. ABD (CISA & OPENPHISH)
 # ==========================================
 def fetch_usa_sources(all_entries):
     print("[*] ABD Kaynakları (CISA & OpenPhish) çekiliyor...")
@@ -158,10 +162,10 @@ def fetch_usa_sources(all_entries):
     print("    -> ABD Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 3. AVRUPA RESMİ & DOĞRUDAN LİSTELER - DOĞRULANDI
+# 🚀 3. AVRUPA LİSTELERİ
 # ==========================================
 def fetch_european_sources(all_entries):
-    print("[*] Avrupa Resmi ve Doğrudan Kaynaklar (Almanya, GreenSnow, Spamhaus) çekiliyor...")
+    print("[*] Avrupa Resmi ve Doğrudan Kaynaklar çekiliyor...")
     sources = [
         "https://lists.blocklist.de/lists/all.txt",
         "https://lists.blocklist.de/lists/ssh.txt",
@@ -178,11 +182,10 @@ def fetch_european_sources(all_entries):
     print("    -> Avrupa Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER - DOĞRULANDI
+# 🚀 4. ÖZEL İSTİHBARAT & HASH KAYNAKLARI
 # ==========================================
 def fetch_special_intel(all_entries):
-    print("[*] Özel Tehdit Servisleri (URLhaus, ThreatFox, MalwareBazaar, Feodo, EmergingThreats) çekiliyor...")
-    
+    print("[*] Özel Tehdit Servisleri ve Hash Kaynakları çekiliyor...")
     endpoints = [
         "https://urlhaus.abuse.ch/downloads/text/",
         "https://threatfox.abuse.ch/export/csv/recent/",
@@ -197,18 +200,16 @@ def fetch_special_intel(all_entries):
             for line in raw.splitlines():
                 line = line.strip()
                 if line and not line.startswith("#"):
-                    if '","' in line:
-                        for part in line.split('","'):
-                            clean_part = part.replace('"', '').strip()
-                            if ":" in clean_part and not clean_part.startswith("http"):
-                                clean_part = clean_part.split(":")[0]
+                    # Satır içindeki tüm olası elemanları parçala (virgül, tırnak vb.)
+                    parts = re.split(r'[,"]+', line)
+                    for part in parts:
+                        clean_part = part.strip()
+                        if len(clean_part) >= 3:
                             classify_and_add(clean_part, all_entries)
-                    else:
-                        classify_and_add(line, all_entries)
     print("    -> Özel Tehdit Servisleri tamamlandı.")
 
 # ==========================================
-# ⚙️ MİKRO AYRIŞTIRICI & KATEGORİZASYON
+# ⚙️ MİKRO AYRIŞTIRICI & KATEGORİZASYON (GÜÇLENDİRİLMİŞ HASH TESPİTİ)
 # ==========================================
 def process_and_categorize(all_raw_entries):
     ip_set = set()
@@ -217,17 +218,19 @@ def process_and_categorize(all_raw_entries):
     hash_set = set()
 
     for item in all_raw_entries:
-        item = str(item).strip()
+        item = str(item).strip().strip('"\'')
         if not item or len(item) < 3:
             continue
 
         if is_whitelisted(item):
             continue
 
+        # Hash Kontrolü (MD5 veya SHA256)
         if HASH_MD5_REGEX.match(item) or HASH_SHA256_REGEX.match(item):
             hash_set.add(item.lower())
             continue
 
+        # URL Kontrolü
         if item.startswith("http://") or item.startswith("https://"):
             url_set.add(item)
             try:
@@ -244,17 +247,20 @@ def process_and_categorize(all_raw_entries):
                 pass
             continue
 
+        # IP Kontrolü
         clean_ip = item.split('/')[0]
         if IP_REGEX.match(item) or IP_REGEX.match(clean_ip):
             if not is_whitelisted(clean_ip):
                 ip_set.add(item)
             continue
 
+        # Domain Kontrolü
         if DOMAIN_REGEX.match(item):
             if not is_whitelisted(item):
                 domain_set.add(item)
             continue
 
+        # Ekstra Host/IP taraması
         clean_host = item.split('/')[0].split(':')[0]
         if not is_whitelisted(clean_host):
             if IP_REGEX.match(clean_host):
@@ -268,7 +274,7 @@ def process_and_categorize(all_raw_entries):
 # 🚀 ANA ÇALIŞTIRICI
 # ==========================================
 def main():
-    print("=== TAM KAPSAMLI TEHDİT İSTİHBARATI ÇEKİMİ BAŞLADI ===\n")
+    print("=== TAM KAPSAMLI VE ARŞİV ODAKLI TEHDİT İSTİHBARATI ÇEKİMİ BAŞLADI ===\n")
     all_raw_entries = set()
 
     fetch_usom_api(all_raw_entries)
@@ -285,7 +291,7 @@ def main():
     save_and_accumulate(OUTPUT_URL, urls, "URL'LER")
     save_and_accumulate(OUTPUT_HASH, hashes, "HASH'LER (MD5/SHA256)")
 
-    print("\n[✔] İşlem başarıyla tamamlandı!")
+    print("\n[✔] İşlem başarıyla tamamlandı, threat_hash.txt dahil tüm dosyalar güncellendi!")
 
 if __name__ == "__main__":
     main()
