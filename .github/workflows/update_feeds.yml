@@ -1,38 +1,43 @@
-name: Auto Threat Intelligence Updater
+name: Threat Feeds Auto Update
 
 on:
   schedule:
-    # Her 30 dakikada bir otomatik çalışır
-    - cron: '*/30 * * * *'
-  workflow_dispatch: # Manuel tetikleme için
+    - cron: '0 */6 * * *' # Her 6 saatte bir otomatik çalışır
+  workflow_dispatch: # Manuel tetikleme butonu ekler
+
+permissions:
+  contents: write
 
 jobs:
-  update-feed:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Repoyu Cek
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 # Tüm git geçmişini çekerek rebase çakışmalarını önler
+      - name: Repoyu Klonla
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Python Kur
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Python Ortamını Kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Scripti Calistir
-      run: python fetch_threats.py
+      - name: Tehdit Listelerini Güncelle
+        run: python fetch_threats.py
 
-    
-        else
-          echo "Herhangi bir değişiklik yok, commit atlanıyor."
-        fi
-- name: Commit and Push
-  run: |
-    git config --local user.email "action@github.com"
-    git config --local user.name "GitHub Action"
-    git add .
-    git commit -m "Threat list otomatik güncellendi [Bot]" || exit 0
-    git pull --rebase origin main
-    git push origin main
+      - name: Değişiklikleri Commit ve Push Et
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git add threat_ip.txt threat_domain.txt threat_url.txt
+          
+          # Eğer değişiklik yoksa hata vermeden çıksın
+          if git diff --staged --quiet; then
+            echo "Değişiklik yok, commit atılmadı."
+            exit 0
+          fi
+          
+          git commit -m "Threat feeds otomatik güncellendi [Bot]"
+          git pull --rebase origin main
+          git push origin main
