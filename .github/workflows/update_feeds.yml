@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Repoyu Çek
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Tüm git geçmişini çekerek rebase çakışmalarını önler
 
     - name: Python Kur
       uses: actions/setup-python@v5
