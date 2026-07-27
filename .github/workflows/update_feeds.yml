@@ -2,9 +2,9 @@ name: Auto Threat Intelligence Updater
 
 on:
   schedule:
-    # Her 30 dakikada bir çalışır
+    # Her 30 dakikada bir otomatik çalışır
     - cron: '*/30 * * * *'
-  workflow_dispatch: # Manuel tetikleme imkanı
+  workflow_dispatch: # Manuel tetikleme için
 
 jobs:
   update-feed:
@@ -14,7 +14,7 @@ jobs:
     - name: Repoyu Cek
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Tum git gecmisini cekerek rebase cakisimlarini önler
+        fetch-depth: 0 # Tüm git geçmişini çekerek rebase çakışmalarını önler
 
     - name: Python Kur
       uses: actions/setup-python@v5
@@ -29,6 +29,12 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "Kenny Bayram Bot"
         git add threat_ip.txt threat_domain.txt threat_url.txt
-        git diff-index --quiet HEAD || git commit -m "Tehdit listeleri 3 ayri dosyada guncellendi [Bot]"
-        git pull --rebase origin main
-        git push origin main
+        
+        # Değişiklik varsa commit et
+        if ! git diff-index --quiet HEAD; then
+          git commit -m "Tehdit listeleri 3 ayri dosyada guncellendi [Bot]"
+          git pull --rebase origin main
+          git push origin main
+        else
+          echo "Herhangi bir değişiklik yok, commit atlanıyor."
+        fi
