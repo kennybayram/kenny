@@ -5,6 +5,11 @@ on:
     - cron: '0 */6 * * *' # Her 6 saatte bir çalışır
   workflow_dispatch: # Manuel tetikleme butonu
 
+# Aynı anda iki workflow çalışıp çakışma üretmesin
+concurrency:
+  group: threat-update-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -23,26 +28,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 1. ÖNCE EN GÜNCEL KODU VE DURUMU ÇEKİYORUZ
-      - name: Git Hazırlığı
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action Bot"
-          git pull origin main
-
-      # 2. ŞİMDİ TAZE TEHDİT LİSTELERİNİ ÜRETİYORUZ
       - name: Tehdit Listelerini Güncelle
         run: python fetch_threats.py
 
-      # 3. YENİ DOSYALARI EKLEYİP DOĞRUDAN PUSH EDİYORUZ
-      - name: Değişiklikleri Commit ve Push Et
-        run: |
-          git add threat_ip.txt threat_domain.txt threat_url.txt
-          
-          if git diff --staged --quiet; then
-            echo "Değişiklik yok, commit atılmadı."
-            exit 0
-          fi
-          
-          git commit -m "Threat feeds otomatik güncellendi [Bot]"
-          git push origin main
+      - name: Otomatik Commit ve Push (Çakışmasız)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Threat feeds otomatik güncellendi [Bot]"
+          file_pattern: 'threat_ip.txt threat_domain.txt threat_url.txt'
+          commit_user_name: "GitHub Action Bot"
+          commit_user_email: "action@github.com"
