@@ -13,8 +13,22 @@ OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/7.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/8.0',
     'Accept': 'application/json, text/plain, */*'
+}
+
+# --- BEYAZ LİSTE (WHITELIST - KESİNLİKLE ENGELLENMEYECEK IP/DOMAINLER) ---
+WHITELIST_IPS = {
+    "8.8.8.8", "8.8.4.4",          # Google DNS
+    "1.1.1.1", "1.0.0.1",          # Cloudflare DNS
+    "9.9.9.9", "149.112.112.112",  # Quad9 DNS
+    "208.67.222.222", "208.67.220.220", # OpenDNS
+    "127.0.0.1", "::1"             # Localhost
+}
+
+WHITELIST_DOMAINS = {
+    "google.com", "cloudflare.com", "microsoft.com", 
+    "apple.com", "github.com", "amazon.com"
 }
 
 # --- REGEX TANIMLARI ---
@@ -35,12 +49,26 @@ def fetch_http(url, method="GET", payload=None, custom_headers=None, timeout=15)
         print(f"[-] Bağlantı Hatası [{url}]: {e}")
         return None
 
+def is_whitelisted(entry):
+    """Girdinin whitelist içinde olup olmadığını kontrol eder"""
+    clean_entry = str(entry).strip().lower()
+    # IP veya CIDR kontrolü
+    IP_base = clean_entry.split('/')[0]
+    if IP_base in WHITELIST_IPS:
+        return True
+    # Domain kontrolü
+    for d in WHITELIST_DOMAINS:
+        if clean_entry == d or clean_entry.endswith("." + d):
+            return True
+    return False
+
 def classify_and_add(raw_entry, target_set):
     if not raw_entry:
         return
     entry = str(raw_entry).strip().strip("'\"")
     if entry and not entry.startswith("#") and not entry.startswith(";"):
-        target_set.add(entry)
+        if not is_whitelisted(entry):
+            target_set.add(entry)
 
 def load_existing_set(filepath):
     if not os.path.exists(filepath):
@@ -124,7 +152,7 @@ def fetch_european_sources(all_entries):
         "https://lists.blocklist.de/lists/all.txt",
         "https://lists.blocklist.de/lists/ssh.txt",
         "https://blocklist.greensnow.co/greensnow.txt",
-        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/cert_at.ipset",
+        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/stopforumspam_7d.ipset",
         "https://www.spamhaus.org/drop/drop.txt",
         "https://www.spamhaus.org/drop/edrop.txt"
     ]
@@ -147,7 +175,7 @@ def fetch_special_intel(all_entries):
         "https://bazaar.abuse.ch/export/txt/sha256/recent/",
         "https://feodotracker.abuse.ch/downloads/ipblocklist_recommended.txt",
         "https://rules.emergingthreats.net/blockrules/compromised-ips.txt",
-        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/cisco_talos_ips.ipset"
+        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/cisco_talos_abusers.ipset"
     ]
     
     for feed in endpoints:
@@ -179,6 +207,9 @@ def process_and_categorize(all_raw_entries):
         if not item or len(item) < 3:
             continue
 
+        if is_whitelisted(item):
+            continue
+
         if HASH_MD5_REGEX.match(item) or HASH_SHA256_REGEX.match(item):
             hash_set.add(item.lower())
             continue
@@ -190,28 +221,32 @@ def process_and_categorize(all_raw_entries):
                 hostname = parsed.hostname
                 if hostname:
                     hostname = hostname.strip()
-                    if IP_REGEX.match(hostname):
-                        ip_set.add(hostname)
-                    elif DOMAIN_REGEX.match(hostname):
-                        domain_set.add(hostname)
+                    if not is_whitelisted(hostname):
+                        if IP_REGEX.match(hostname):
+                            ip_set.add(hostname)
+                        elif DOMAIN_REGEX.match(hostname):
+                            domain_set.add(hostname)
             except Exception:
                 pass
             continue
 
         clean_ip = item.split('/')[0]
         if IP_REGEX.match(item) or IP_REGEX.match(clean_ip):
-            ip_set.add(item)
+            if not is_whitelisted(clean_ip):
+                ip_set.add(item)
             continue
 
         if DOMAIN_REGEX.match(item):
-            domain_set.add(item)
+            if not is_whitelisted(item):
+                domain_set.add(item)
             continue
 
         clean_host = item.split('/')[0].split(':')[0]
-        if IP_REGEX.match(clean_host):
-            ip_set.add(clean_host)
-        elif DOMAIN_REGEX.match(clean_host):
-            domain_set.add(clean_host)
+        if not is_whitelisted(clean_host):
+            if IP_REGEX.match(clean_host):
+                ip_set.add(clean_host)
+            elif DOMAIN_REGEX.match(clean_host):
+                domain_set.add(clean_host)
 
     return ip_set, domain_set, url_set, hash_set
 
@@ -227,7 +262,7 @@ def main():
     fetch_european_sources(all_raw_entries)
     fetch_special_intel(all_raw_entries)
 
-    print("\n[*] Toplanan tüm veriler işleniyor ve kategorize ediliyor...")
+    print("\n[*] Toplanan tüm veriler işleniyor, whitelist süzgecinden geçiriliyor ve kategorize ediliyor...")
     ips, domains, urls, hashes = process_and_categorize(all_raw_entries)
 
     print("\n=== SONUÇLARI KAYDETME VE İSTATİSTİKLER ===")
