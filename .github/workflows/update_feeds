@@ -1,0 +1,48 @@
+name: Threat Feeds Auto Update
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Her 6 saatte bir çalışır
+  workflow_dispatch: # Manuel tetikleme butonu
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repoyu Klonla
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python Ortamını Kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 1. ÖNCE EN GÜNCEL KODU VE DURUMU ÇEKİYORUZ
+      - name: Git Hazırlığı
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          git pull origin main
+
+      # 2. ŞİMDİ TAZE TEHDİT LİSTELERİNİ ÜRETİYORUZ
+      - name: Tehdit Listelerini Güncelle
+        run: python fetch_threats.py
+
+      # 3. YENİ DOSYALARI EKLEYİP DOĞRUDAN PUSH EDİYORUZ
+      - name: Değişiklikleri Commit ve Push Et
+        run: |
+          git add threat_ip.txt threat_domain.txt threat_url.txt
+          
+          if git diff --staged --quiet; then
+            echo "Değişiklik yok, commit atılmadı."
+            exit 0
+          fi
+          
+          git commit -m "Threat feeds otomatik güncellendi [Bot]"
+          git push origin main
