@@ -13,7 +13,7 @@ OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/9.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/10.0',
     'Accept': 'application/json, text/plain, */*'
 }
 
@@ -141,24 +141,19 @@ def fetch_usa_sources(all_entries):
     print("    -> ABD Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 3. AVRUPA KANALLARI (ALMANYA, FRANSA, İSVİÇRE, AVUSTURYA, HOLLANDA, AB)
+# 🚀 3. AVRUPA RESMİ & DOĞRUDAN KAYNAKLAR (DE, NL, EU)
 # ==========================================
 def fetch_european_sources(all_entries):
-    print("[*] Avrupa Ülkeleri ve Kurumları (DE, FR, CH, AT, NL, EU) çekiliyor...")
+    print("[*] Avrupa Resmi Kaynakları (Almanya, Hollanda, Spamhaus) çekiliyor...")
     sources = [
-        # Almanya & Genel IP Reputation (Blocklist.de & GreenSnow)
+        # Almanya (Blocklist.de - Doğrudan resmi IP reputation ağ beslemesi)
         "https://lists.blocklist.de/lists/all.txt",
         "https://lists.blocklist.de/lists/ssh.txt",
+        # İsviçre / Küresel GreenSnow Doğrudan Akış
         "https://blocklist.greensnow.co/greensnow.txt",
-        # Fransa (FireHOL üzerinden derlenen CERT-FR / ANSSI IP listeleri)
-        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/certfr_file.ipset",
-        # Avusturya & İsviçre (FireHOL üzerinden CERT.AT ve NCSC akışları)
-        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/cert_at.ipset",
-        # Hollanda ve Global Ağlar (Spamhaus DROP / EDROP)
+        # Hollanda / Küresel Ağlar (Spamhaus DROP / EDROP - Orijinal Spamhaus Resmi Kaynağı)
         "https://www.spamhaus.org/drop/drop.txt",
-        "https://www.spamhaus.org/drop/edrop.txt",
-        # Topluluk Zararlı IP Listesi
-        "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/stopforumspam_7d.ipset"
+        "https://www.spamhaus.org/drop/edrop.txt"
     ]
     
     for src in sources:
@@ -166,7 +161,7 @@ def fetch_european_sources(all_entries):
         if raw:
             for line in raw.splitlines():
                 classify_and_add(line, all_entries)
-    print("    -> Avrupa Kaynakları tamamlandı.")
+    print("    -> Avrupa Resmi Kaynakları tamamlandı.")
 
 # ==========================================
 # 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER (ABUSE.CH, EMERGING THREATS)
