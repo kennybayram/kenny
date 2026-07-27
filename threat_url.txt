@@ -5795,7 +5795,6 @@ http://115.54.124.215:45131/i
 http://115.54.127.247:40198/bin.sh
 http://115.54.127.247:40198/i
 http://115.54.128.181:49195/bin.sh
-http://115.54.129.169:51249/bin.sh
 http://115.54.130.57:46614/bin.sh
 http://115.54.130.57:46614/i
 http://115.54.131.48:52229/bin.sh
@@ -8457,6 +8456,7 @@ http://120.43.15.30:58079/i
 http://120.43.54.158:51830/bin.sh
 http://120.43.54.158:51830/i
 http://120.48.115.29:9977/Microsoftbs.exe
+http://120.50.10.30:27726/
 http://120.50.10.30:27726/.i
 http://120.50.10.30:27726/i
 http://120.57.116.89:55269/bin.sh
@@ -26774,7 +26774,6 @@ http://222.127.68.115:44864/bin.sh
 http://222.127.68.115:44864/i
 http://222.127.71.141:60996/bin.sh
 http://222.127.71.141:60996/i
-http://222.127.75.70:34355/bin.sh
 http://222.127.76.16:59778/bin.sh
 http://222.127.76.16:59778/i
 http://222.127.76.40:37063/i
@@ -59169,7 +59168,6 @@ https://qtxcrltc.testpaye.xyz/52aa3016-2146-48ad-aab8-111439266345
 https://quant.fiverfle8ma.surf/9fd51fb7-b3ad-4c8f-bf05-b5423d14e06c/user_6747.google
 https://quant.oceanstormview.lat/9fd51fb7-b3ad-4c8f-bf05-b5423d14e06c/user_6747.google
 https://quant9wavegate.ferrumgateweb.garden/cdk-msdn-3457325-null/load-file0dsdf567.chk
-https://quant9wavegate.quantumpathnet.garden/cdk-msdn-3457325-null/load-file0dsdf567.chk
 https://quantquery.daro6vex.lat/9fd51fb7-b3ad-4c8f-bf05-b5423d14e06c/user_6747.google
 https://quantum-entanglement-crypt.garden/1355e8eb-0696-4a1e-b68f-7456031511bb/google.cl
 https://quantum-forge-nat.courses/84538c33-f20a-46fa-ae13-a19324269d76/google.ct
