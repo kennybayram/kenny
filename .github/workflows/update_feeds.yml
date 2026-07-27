@@ -2,8 +2,8 @@ name: Threat Feeds Auto Update
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Her 6 saatte bir otomatik çalışır
-  workflow_dispatch: # Manuel tetikleme butonu ekler
+    - cron: '0 */6 * * *' # Her 6 saatte bir çalışır
+  workflow_dispatch: # Manuel tetikleme butonu
 
 permissions:
   contents: write
@@ -30,14 +30,19 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
+          
+          # Uzak sunucudaki son durumu çek
+          git fetch origin main
+          
           git add threat_ip.txt threat_domain.txt threat_url.txt
           
-          # Eğer değişiklik yoksa hata vermeden çıksın
+          # Eğer dosyalarda değişiklik yoksa işlem yapma
           if git diff --staged --quiet; then
             echo "Değişiklik yok, commit atılmadı."
             exit 0
           fi
           
           git commit -m "Threat feeds otomatik güncellendi [Bot]"
-          git pull --rebase origin main
-          git push origin main
+          
+          # Çakışmaları aşmak için rebase yerine doğrudan zorlamasız push veya pull-strategy kullanıyoruz
+          git push origin main || (git rebase origin main -X ours && git push origin main)
