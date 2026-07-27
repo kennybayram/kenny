@@ -1826,7 +1826,6 @@ code.verification-claude-cdn.beer
 codecerification.beer
 codeframe.wiki
 codeinspector.ddns.net
-codeload.github.com
 codemeshsite.cryptosyncflow.bet
 codepit-rized-denengine.garden
 coder-logic-vault.courses
@@ -2438,9 +2437,7 @@ doclabutil.infrasettopview.pics
 doclabutil.openapiservicex.pics
 doclabutil.vexon3ix.pics
 docs.aviatrix.com
-docs.google.com
 docs.libraesva.com
-docs.microsoft.com
 docs.telerik.com
 docsfan-flora-ability-system.garden
 docsonlineshare.shorepowersolution.net
@@ -2546,8 +2543,6 @@ drift.longwave5hot.surf
 drift2logicnet.tundraflowunit.garden
 drift5pathgate.felo7wave.surf
 drij.bahsegel90.com
-drive.google.com
-drive.usercontent.google.com
 drivescrip.div0rceskis5ing.pics
 drkynxdcu.gem90bet.com
 drlycjl.jamjahani.mobi
@@ -3528,7 +3523,6 @@ git.serverdatahub.pics
 git.softnetlink.pics
 git.softwincli.pics
 gitea.nightcord.st
-github.com
 gitlab.barchon-virtue.lat
 gitlab.com
 gitlab.coop-san.lat
@@ -3688,7 +3682,6 @@ gridgrimmorn.xyz
 grim-wave.rataj-vertky.lat
 grit-briskbath.xyz
 groan-brim-peak.xyz
-groups.google.com
 grow6taskhub.goddess-tapir.bet
 growth2-mark.lami4qor.surf
 grrab.cannatural.cz
@@ -4902,7 +4895,6 @@ leafcash-even.xyz
 leafhostunit.goddess-tapir.bet
 leap7pathgate.quantumbitlink.bet
 learn.assetlifecycle.trimble.com
-learn.microsoft.com
 lebsons.space
 leconto.lol
 ledger-3yb.pages.dev
@@ -5594,8 +5586,6 @@ msbeora.takhtebet.app
 mseikoean.allboroughrealestate.com
 msfconfig.icu
 msoftdatastore.z22.web.core.windows.net
-msrc-blog.microsoft.com
-msrc.microsoft.com
 mstopsai.com
 mszlnqlm.jetbet1.live
 mszrd.mabanieslami2.xyz
@@ -6572,7 +6562,6 @@ port-mar.xamir2el.surf
 port.coldwindy.lat
 port3pathgate.dusherport2ge.bet
 port5pathgate.matrixhostbit.bet
-portal.msrc.microsoft.com
 porthot-irr-gation-menthub.garden
 portmeshnode.sora5link.surf
 portwesl.com
@@ -7634,7 +7623,6 @@ site8siteview.colorist-resignat.bet
 site8siteview.felo7zone.surf
 site9siteview.deno2link.surf
 site9siteview.matrixhostbit.bet
-sites.google.com
 siteyet-script-horizon-go.garden
 sixmexicos.com
 sizyrotiqnsa.com
@@ -8205,7 +8193,6 @@ sun8i9tk.luxerabet1000.com
 sunix-technology.com
 supplyflash.wiki
 supplyvau.fixionmunici9al.lat
-support.apple.com
 support.arraynetworks.net
 support.broadcom.com
 support.checkpoint.com
@@ -9739,7 +9726,6 @@ www.fotoinstalll.ink
 www.fxc.jp
 www.getdante.com
 www.gigabyte.com
-www.google.com
 www.gridfile.cfd
 www.hcsnet.com.br
 www.hikvision.com
