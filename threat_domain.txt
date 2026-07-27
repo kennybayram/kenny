@@ -1,7 +1,0 @@
-<!DOCTYPE html>
-<body>
-<head>
-<html lang="en">
-<meta
-content="SwaggerIU
-name="description
