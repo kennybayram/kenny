@@ -18,6 +18,9 @@ Bu depo, ulusal ve küresel yetkili siber güvenlik kurumları ile açık kaynak
 * **Abuse.ch (URLhaus, ThreatFox, MalwareBazaar, Feodo Tracker):** Küresel kötü amaçlı URL, IOC, zararlı dosya hash'leri ve botnet C2 IP'leri.
 * **Emerging Threats:** Komamine edilmiş küresel zararlı IP havuzları.
 
+**Yazar:** Kenan Bayram  
+[LinkedIn Profilim](https://www.linkedin.com/in/kenanbayram)
+
 ---
 
 ## English
@@ -32,6 +35,9 @@ This repository is powered by a high-performance threat intelligence engine that
 * **Abuse.ch (URLhaus, ThreatFox, MalwareBazaar, Feodo Tracker):** Global malicious URLs, IOCs, malware file hashes, and botnet C2 IPs.
 * **Emerging Threats:** Compromised global malicious IP pools.
 
+**Author:** Kenan Bayram  
+[LinkedIn Profile](https://www.linkedin.com/in/kenanbayram)
+
 ---
 
 ## Deutsch
@@ -39,12 +45,15 @@ Dieses Repository wird von einer hochleistungsfähigen Bedrohungsinformations-En
 
 ### 📡 Verwendete Quellen und Dienste
 * **Präsidentschaft für Cybersicherheit (USOM API):** Offizielle Schadverbindungs- und Vorfalldaten aus der Türkei.
-* **CISA (Known Exploited Vulnerabilities):** Cybersicherheits-Schwachstellen- und Intelligendatenfeeds der Vereinigten Staaten.
+* **CISA (Known Exploited Vulnerabilities):** Cybersicherheits-Schwächen- und Intelligendatenfeeds der Vereinigten Staaten.
 * **OpenPhish:** Globale Phishing-URL-Streams.
 * **Blocklist.de & GreenSnow:** Deutschland- und schweizbasierte IP-Reputations- und SSH-Angriffsquellen.
 * **Spamhaus (DROP & EDROP):** Niederlande / Globale kritische schädliche Netzwerk- und IP-Blöcke.
 * **Abuse.ch (URLhaus, ThreatFox, MalwareBazaar, Feodo Tracker):** Globale schädliche URLs, IOCs, Malware-Dateihashes und Botnet-C2-IPs.
 * **Emerging Threats:** Kompromittierte globale schädliche IP-Pools.
+
+**Autor:** Kenan Bayram  
+[LinkedIn-Profil](https://www.linkedin.com/in/kenanbayram)
 
 ---
 
@@ -60,6 +69,9 @@ Ce dépôt est alimenté par un moteur de renseignement sur les menaces (Threat 
 * **Abuse.ch (URLhaus, ThreatFox, MalwareBazaar, Feodo Tracker):** URL malveillantes mondiales, IOCs, hachages de fichiers malveillants et IP C2 de botnets.
 * **Emerging Threats:** Pools d'IP malveillantes mondiales compromises.
 
+**Auteur:** Kenan Bayram  
+[Profil LinkedIn](https://www.linkedin.com/in/kenanbayram)
+
 ---
 
 ## Italiano
@@ -74,8 +86,5 @@ Questo repository è alimentato da un motore di threat intelligence ad alte pres
 * **Abuse.ch (URLhaus, ThreatFox, MalwareBazaar, Feodo Tracker):** URL dannosi globali, IOC, hash di file malware e IP C2 di botnet.
 * **Emerging Threats:** Pool di IP dannosi globali compromessi.
 
----
-
-### 👨‍💻 Author / Yazar
-* **Kenan Bayram**  
-  [LinkedIn Profile](https://www.linkedin.com/in/kenanbayram)
+**Autore:** Kenan Bayram  
+[Profilo LinkedIn](https://www.linkedin.com/in/kenanbayram)
