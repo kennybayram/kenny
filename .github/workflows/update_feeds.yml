@@ -28,4 +28,5 @@ jobs:
         git config --local user.name "Kenny Bayram Bot"
         git add threat_ip.txt threat_domain.txt threat_url.txt
         git diff-index --quiet HEAD || git commit -m "Tehdit listeleri otomatik güncellendi [Bot]"
+        git pull --rebase origin main
         git push
