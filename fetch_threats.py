@@ -13,7 +13,7 @@ OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/11.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/12.5',
     'Accept': 'application/json, text/plain, */*'
 }
 
@@ -28,7 +28,7 @@ WHITELIST_IPS = {
 
 WHITELIST_DOMAINS = {
     "google.com", "cloudflare.com", "microsoft.com", 
-    "apple.com", "github.com", "amazon.com"
+    "apple.com", "github.com", "amazon.com", "siberguvenlik.gov.tr"
 }
 
 # --- REGEX TANIMLARI ---
@@ -74,22 +74,12 @@ def load_existing_set(filepath):
         return set(line.strip() for line in f if line.strip())
 
 def save_and_accumulate(filename, new_fetched_set, label):
-    """
-    Eski listeden sadece whitelist'e girenleri temizler.
-    Geri kalan geçmiş kayıtları korur ve yeni gelen benzersiz kayıtları ekler.
-    Birebir aynı olanları (ör. aynı satır) tekilleştirir.
-    """
-    old_set = load_existing_set(filename)
-    
-    # 1. Eski listede olup artık whitelist'e takılanları listeden çıkar
+    old_set = load_existing_set(filepath=filename)
     cleaned_old_set = {item for item in old_set if not is_whitelisted(item)}
-    
-    # 2. Eskiler ile yeni tarananları birleştir (Birebir aynılar tekilleşir)
     combined_set = cleaned_old_set.union(new_fetched_set)
     
-    # İstatistik hesaplama (Eski temiz liste üzerinden)
     added = combined_set - cleaned_old_set
-    removed = cleaned_old_set - combined_set # Normalde 0 olmalı çünkü eski kayıtları silmiyoruz, sadece whitelist temizliği yapılıyor.
+    removed = cleaned_old_set - combined_set
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write("\n".join(sorted(combined_set)))
@@ -100,38 +90,52 @@ def save_and_accumulate(filename, new_fetched_set, label):
     print(f"  ➖ Listeden Çıkan: {len(removed)}")
 
 # ==========================================
-# 🚀 1. TÜRKİYE (USOM REST API)
+# 🚀 1. TÜRKİYE (SİBER GÜVENLİK BAŞKANLIĞI / USOM API) - DOĞRULANDI
 # ==========================================
 def fetch_usom_api(all_entries):
-    print("[*] USOM API'den veriler çekiliyor...")
-    base_url = "https://siberguvenlik.gov.tr/api/incident/index"
-    page = 1
-    max_pages = 5
+    print("[*] Siber Güvenlik Başkanlığı ve USOM API uç noktaları taranıyor...")
     
-    while page <= max_pages:
-        url = f"{base_url}?page={page}"
-        raw_data = fetch_http(url)
-        if not raw_data:
-            break
+    endpoints = [
+        "https://siberguvenlik.gov.tr/api/address/index",
+        "https://siberguvenlik.gov.tr/api/incident/index"
+    ]
+    
+    for base_url in endpoints:
+        page = 1
+        max_pages = 25 # Genişletilmiş sayfalama limiti
         
-        try:
-            json_data = json.loads(raw_data)
-            items = json_data.get("models", []) if isinstance(json_data.get("models"), list) else json_data.get("data", [])
-            if not items:
+        while page <= max_pages:
+            url = f"{base_url}?page={page}"
+            raw_data = fetch_http(url)
+            if not raw_data:
                 break
+            
+            try:
+                json_data = json.loads(raw_data)
+                items = []
+                if isinstance(json_data, list):
+                    items = json_data
+                elif isinstance(json_data, dict):
+                    items = json_data.get("models") or json_data.get("data") or json_data.get("items") or json_data.get("results", [])
                 
-            for item in items:
-                url_val = item.get("url") or item.get("target") or item.get("domain")
-                if url_val:
-                    classify_and_add(url_val, all_entries)
+                if not items:
+                    break
                     
-            page += 1
-        except Exception:
-            break
-    print("    -> USOM API tamamlandı.")
+                for item in items:
+                    if isinstance(item, dict):
+                        for val in item.values():
+                            if isinstance(val, str) and len(val) > 3:
+                                classify_and_add(val, all_entries)
+                    elif isinstance(item, str):
+                        classify_and_add(item, all_entries)
+                        
+                page += 1
+            except Exception:
+                break
+    print("    -> Siber Güvenlik Başkanlığı API taraması tamamlandı.")
 
 # ==========================================
-# 🚀 2. ABD (CISA & OPENPHISH)
+# 🚀 2. ABD (CISA & OPENPHISH) - DOĞRULANDI
 # ==========================================
 def fetch_usa_sources(all_entries):
     print("[*] ABD Kaynakları (CISA & OpenPhish) çekiliyor...")
@@ -154,10 +158,10 @@ def fetch_usa_sources(all_entries):
     print("    -> ABD Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 3. AVRUPA RESMİ & DOĞRUDAN KAYNAKLAR (DE, NL, SPAMHAUS)
+# 🚀 3. AVRUPA RESMİ & DOĞRUDAN LİSTELER - DOĞRULANDI
 # ==========================================
 def fetch_european_sources(all_entries):
-    print("[*] Avrupa Resmi Kaynakları (Almanya, Hollanda, Spamhaus) çekiliyor...")
+    print("[*] Avrupa Resmi ve Doğrudan Kaynaklar (Almanya, GreenSnow, Spamhaus) çekiliyor...")
     sources = [
         "https://lists.blocklist.de/lists/all.txt",
         "https://lists.blocklist.de/lists/ssh.txt",
@@ -171,13 +175,13 @@ def fetch_european_sources(all_entries):
         if raw:
             for line in raw.splitlines():
                 classify_and_add(line, all_entries)
-    print("    -> Avrupa Resmi Kaynakları tamamlandı.")
+    print("    -> Avrupa Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER
+# 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER - DOĞRULANDI
 # ==========================================
 def fetch_special_intel(all_entries):
-    print("[*] Özel Tehdit Servisleri (URLhaus, ThreatFox, Feodo, EmergingThreats) çekiliyor...")
+    print("[*] Özel Tehdit Servisleri (URLhaus, ThreatFox, MalwareBazaar, Feodo, EmergingThreats) çekiliyor...")
     
     endpoints = [
         "https://urlhaus.abuse.ch/downloads/text/",
