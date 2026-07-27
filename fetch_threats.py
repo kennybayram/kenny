@@ -13,7 +13,7 @@ OUTPUT_URL = "threat_url.txt"
 OUTPUT_HASH = "threat_hash.txt"
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/10.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ThreatIntelEngine/11.0',
     'Accept': 'application/json, text/plain, */*'
 }
 
@@ -73,16 +73,29 @@ def load_existing_set(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
         return set(line.strip() for line in f if line.strip())
 
-def save_and_report_diff(filename, new_set, label):
+def save_and_accumulate(filename, new_fetched_set, label):
+    """
+    Eski listeden sadece whitelist'e girenleri temizler.
+    Geri kalan geçmiş kayıtları korur ve yeni gelen benzersiz kayıtları ekler.
+    Birebir aynı olanları (ör. aynı satır) tekilleştirir.
+    """
     old_set = load_existing_set(filename)
-    added = new_set - old_set
-    removed = old_set - new_set
+    
+    # 1. Eski listede olup artık whitelist'e takılanları listeden çıkar
+    cleaned_old_set = {item for item in old_set if not is_whitelisted(item)}
+    
+    # 2. Eskiler ile yeni tarananları birleştir (Birebir aynılar tekilleşir)
+    combined_set = cleaned_old_set.union(new_fetched_set)
+    
+    # İstatistik hesaplama (Eski temiz liste üzerinden)
+    added = combined_set - cleaned_old_set
+    removed = cleaned_old_set - combined_set # Normalde 0 olmalı çünkü eski kayıtları silmiyoruz, sadece whitelist temizliği yapılıyor.
 
     with open(filename, "w", encoding="utf-8") as f:
-        f.write("\n".join(sorted(new_set)))
+        f.write("\n".join(sorted(combined_set)))
 
     print(f"\n--- {label} İSTATİSTİKLERİ ---")
-    print(f"  Toplam Kayıt   : {len(new_set)}")
+    print(f"  Toplam Kayıt   : {len(combined_set)}")
     print(f"  ➕ Yeni Eklenen : {len(added)}")
     print(f"  ➖ Listeden Çıkan: {len(removed)}")
 
@@ -141,17 +154,14 @@ def fetch_usa_sources(all_entries):
     print("    -> ABD Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 3. AVRUPA RESMİ & DOĞRUDAN KAYNAKLAR (DE, NL, EU)
+# 🚀 3. AVRUPA RESMİ & DOĞRUDAN KAYNAKLAR (DE, NL, SPAMHAUS)
 # ==========================================
 def fetch_european_sources(all_entries):
     print("[*] Avrupa Resmi Kaynakları (Almanya, Hollanda, Spamhaus) çekiliyor...")
     sources = [
-        # Almanya (Blocklist.de - Doğrudan resmi IP reputation ağ beslemesi)
         "https://lists.blocklist.de/lists/all.txt",
         "https://lists.blocklist.de/lists/ssh.txt",
-        # İsviçre / Küresel GreenSnow Doğrudan Akış
         "https://blocklist.greensnow.co/greensnow.txt",
-        # Hollanda / Küresel Ağlar (Spamhaus DROP / EDROP - Orijinal Spamhaus Resmi Kaynağı)
         "https://www.spamhaus.org/drop/drop.txt",
         "https://www.spamhaus.org/drop/edrop.txt"
     ]
@@ -164,7 +174,7 @@ def fetch_european_sources(all_entries):
     print("    -> Avrupa Resmi Kaynakları tamamlandı.")
 
 # ==========================================
-# 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER (ABUSE.CH, EMERGING THREATS)
+# 🚀 4. ÖZEL İSTİHBARAT & KÖTÜ AMAÇLI SERVİSLER
 # ==========================================
 def fetch_special_intel(all_entries):
     print("[*] Özel Tehdit Servisleri (URLhaus, ThreatFox, Feodo, EmergingThreats) çekiliyor...")
@@ -266,10 +276,10 @@ def main():
     ips, domains, urls, hashes = process_and_categorize(all_raw_entries)
 
     print("\n=== SONUÇLARI KAYDETME VE İSTATİSTİKLER ===")
-    save_and_report_diff(OUTPUT_IP, ips, "IP ADRESLERİ")
-    save_and_report_diff(OUTPUT_DOMAIN, domains, "DOMAINLER")
-    save_and_report_diff(OUTPUT_URL, urls, "URL'LER")
-    save_and_report_diff(OUTPUT_HASH, hashes, "HASH'LER (MD5/SHA256)")
+    save_and_accumulate(OUTPUT_IP, ips, "IP ADRESLERİ")
+    save_and_accumulate(OUTPUT_DOMAIN, domains, "DOMAINLER")
+    save_and_accumulate(OUTPUT_URL, urls, "URL'LER")
+    save_and_accumulate(OUTPUT_HASH, hashes, "HASH'LER (MD5/SHA256)")
 
     print("\n[✔] İşlem başarıyla tamamlandı!")
 
