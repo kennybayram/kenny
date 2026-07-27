@@ -24,17 +24,15 @@ jobs:
     - name: Scripti Calistir
       run: python fetch_threats.py
 
-    - name: Guncellenen Dosyalari Kaydet ve Push Et
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "Kenny Bayram Bot"
-        git add threat_ip.txt threat_domain.txt threat_url.txt
-        
-        # Değişiklik varsa commit et
-        if ! git diff-index --quiet HEAD; then
-          git commit -m "Tehdit listeleri 3 ayri dosyada guncellendi [Bot]"
-          git pull --rebase origin main
-          git push origin main
+    
         else
           echo "Herhangi bir değişiklik yok, commit atlanıyor."
         fi
+- name: Commit and Push
+  run: |
+    git config --local user.email "action@github.com"
+    git config --local user.name "GitHub Action"
+    git add .
+    git commit -m "Threat list otomatik güncellendi [Bot]" || exit 0
+    git pull --rebase origin main
+    git push origin main
